@@ -1,0 +1,32 @@
+program        = { statement } ;
+
+statement      = assignment | function_call | while_statement | if_statement | ";" ;
+
+assignment     = identifier "=" expression ";" ;
+
+function_call  = identifier "(" [ arguments ] ")" ";" ;
+
+arguments      = expression { "," expression } ;
+
+while_statement = "enquanto" "(" condition ")" "{" { statement } "}" ;
+
+if_statement   = "se" "(" condition ")" "{" { statement } "}"
+               [ "senao" "{" { statement } "}" ] ;
+
+condition      = expression comparator expression ;
+
+expression     = term { ("+" | "-" ) term } ;
+
+term           = factor { ("*" | "/" | "%" ) factor } ;
+
+factor         = number
+               | identifier
+               | "(" expression ")" ;
+
+comparator     = ">" | "<" | "==" | "!=" | ">=" | "<=" ;
+
+identifier     = letter { letter | digit | "_" } ;
+number         = digit { digit } ;
+
+letter         = "a"..."z" | "A"..."Z" ;
+digit          = "0"..."9" ;
