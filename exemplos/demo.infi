@@ -1,0 +1,14 @@
+leite = 0;
+dinheiro = 0;
+vacas = 1;
+
+enquanto (dinheiro < 100) {
+  ordenhar();
+  leite = leite + 1;
+  se (leite >= 10) {
+    vender(10);
+  }
+  se (dinheiro >= 50) {
+    comprar_vaca();
+  }
+}
