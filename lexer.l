@@ -50,10 +50,8 @@ NUM     {DIGIT}+
 
 [ \t\r\n]+      { /* skip whitespace */ }
 
-/* line comments */
 "//".*          { /* ignore */ }
 
-/* simpler block-comment: support /* ... *\/  (may be multi-line) */
 "/*"([^*]|\*+[^*/])*\*+ "/"   { /* ignore block comment */ }
 
 .               { /* unknown char => return it (parser will error) */ return yytext[0]; }
