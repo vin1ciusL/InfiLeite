@@ -1,3 +1,4 @@
+cat > lexer.l <<'EOF'
 %{
 #include "parser.tab.h"
 #include <stdlib.h>
@@ -49,11 +50,15 @@ NUM     {DIGIT}+
 
 [ \t\r\n]+      { /* skip whitespace */ }
 
-"//".*          { /* line comment */ }
-"/*"([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*"*"/"   { /* block comment */ }
+/* line comments */
+"//".*          { /* ignore */ }
+
+/* simpler block-comment: support /* ... *\/  (may be multi-line) */
+"/*"([^*]|\*+[^*/])*\*+ "/"   { /* ignore block comment */ }
 
 .               { /* unknown char => return it (parser will error) */ return yytext[0]; }
 
 %%
 
 int yywrap(void) { return 1; }
+EOF
