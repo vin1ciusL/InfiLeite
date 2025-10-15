@@ -1,9 +1,7 @@
-cat > parser.y <<'PY'
 %{
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 extern int yylex(void);
 extern int yylineno;
 void yyerror(const char *s);
@@ -14,14 +12,11 @@ void yyerror(const char *s);
     char *str;
 }
 
-/* tokens */
 %token <str> IDENT
 %token <num> NUMBER
 %token WHILE IF ELSE
 %token EQ NEQ GTE LTE GT LT
 %token ASSIGN
-
-/* Declare types for nonterminals that use values */
 %type <num> expression term factor
 %type <str> args
 
@@ -30,9 +25,7 @@ void yyerror(const char *s);
 
 %%
 
-/* grammar matches your gramatica.ebnf */
 program:
-      /* empty */
     | program statement
     ;
 
@@ -45,28 +38,16 @@ statement:
     ;
 
 assignment:
-    IDENT ASSIGN expression ';' {
-        /* semantic not required for entrega 2: just accept */
-        free($1);
-    }
+    IDENT ASSIGN expression ';' { free($1); }
     ;
 
 function_call:
-    IDENT '(' ')' ';' {
-        free($1);
-    }
-    | IDENT '(' args ')' ';' {
-        /* $3 is args (a string with argcount) or NULL */
-        if ($3) free($3);
-        free($1);
-    }
+    IDENT '(' ')' ';' { free($1); }
+    | IDENT '(' args ')' ';' { if($3) free($3); free($1); }
     ;
 
 args:
-      expression {
-          /* single arg -> return "1" as argcount string (only structural) */
-          $$ = strdup("1");
-      }
+      expression { $$ = strdup("1"); }
     | args ',' expression {
           int prev = atoi($1);
           char buf[32];
@@ -77,50 +58,36 @@ args:
     ;
 
 while_statement:
-    WHILE '(' condition ')' '{' program '}' { /* nothing to do */ }
-    ;
-
+    WHILE '(' condition ')' '{' program '}' ;
+    
 if_statement:
-    IF '(' condition ')' '{' program '}' {
-        /* optional else handled below */
-    }
-    | IF '(' condition ')' '{' program '}' ELSE '{' program '}' {
-        /* if-else */
-    }
+    IF '(' condition ')' '{' program '}' 
+    | IF '(' condition ')' '{' program '}' ELSE '{' program '}' 
     ;
 
 condition:
-    expression comparator expression {
-        /* no semantic action; just accept */
-    }
-    ;
+    expression comparator expression ;
 
 comparator:
-      EQ { }
-    | NEQ { }
-    | GT { }
-    | LT { }
-    | GTE { }
-    | LTE { }
-    ;
+      EQ | NEQ | GT | LT | GTE | LTE ;
 
 expression:
-      term { $$ = $1; }
-    | expression '+' term { $$ = 0; }
-    | expression '-' term { $$ = 0; }
+      term
+    | expression '+' term
+    | expression '-' term
     ;
 
 term:
-      factor { $$ = $1; }
-    | term '*' factor { $$ = 0; }
-    | term '/' factor { $$ = 0; }
-    | term '%' factor { $$ = 0; }
+      factor
+    | term '*' factor
+    | term '/' factor
+    | term '%' factor
     ;
 
 factor:
-      NUMBER { $$ = $1; }
-    | IDENT { free($1); $$ = 0; }
-    | '(' expression ')' { $$ = $2; }
+      NUMBER
+    | IDENT { free($1); }
+    | '(' expression ')'
     ;
 
 %%
@@ -128,4 +95,3 @@ factor:
 void yyerror(const char *s) {
     fprintf(stderr, "Erro sintático: %s (linha %d)\n", s, yylineno);
 }
-PY

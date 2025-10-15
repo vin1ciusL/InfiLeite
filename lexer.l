@@ -2,7 +2,6 @@
 #include "parser.tab.h"
 #include <stdlib.h>
 #include <string.h>
-
 void yyerror(const char *s);
 %}
 
@@ -16,40 +15,22 @@ NUM     {DIGIT}+
 "se"            { return IF; }
 "senao"         { return ELSE; }
 
-{ID}            {
-                    yylval.str = strdup(yytext);
-                    return IDENT;
-                }
+{ID}            { yylval.str = strdup(yytext); return IDENT; }
+{NUM}           { yylval.num = atol(yytext); return NUMBER; }
 
-{NUM}           {
-                    yylval.num = atol(yytext);
-                    return NUMBER;
-                }
+"==" { return EQ; } "!=" { return NEQ; } ">=" { return GTE; } "<=" { return LTE; }
+">"  { return GT; } "<"  { return LT; }
 
-"=="            { return EQ; }
-"!="            { return NEQ; }
-">="            { return GTE; }
-"<="            { return LTE; }
-">"             { return GT; }
-"<"             { return LT; }
+"="  { return ASSIGN; }
+";"  { return ';'; } "," { return ','; }
+"("  { return '('; } ")" { return ')'; }
+"{"  { return '{'; } "}" { return '}'; }
 
-"="             { return ASSIGN; }
-";"             { return ';'; }
-","             { return ','; }
-"("             { return '('; }
-")"             { return ')'; }
-"{"             { return '{'; }
-"}"             { return '}'; }
+"+" { return '+'; } "-" { return '-'; }
+"*" { return '*'; } "/" { return '/'; } "%" { return '%'; }
 
-"+"             { return '+'; }
-"-"             { return '-'; }
-"*"             { return '*'; }
-"/"             { return '/'; }
-"%"             { return '%'; }
-
-[ \t\r\n]+      { /* skip whitespace */ }
-
-.               { /* unknown char => return it (parser will likely error) */ return yytext[0]; }
+[ \t\r\n]+  ;
+.           { return yytext[0]; }
 
 %%
 
