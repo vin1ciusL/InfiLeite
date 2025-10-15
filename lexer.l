@@ -1,4 +1,3 @@
-cat > lexer.l <<'EOF'
 %{
 #include "parser.tab.h"
 #include <stdlib.h>
@@ -50,13 +49,8 @@ NUM     {DIGIT}+
 
 [ \t\r\n]+      { /* skip whitespace */ }
 
-"//".*          { /* ignore */ }
-
-"/*"([^*]|\*+[^*/])*\*+ "/"   { /* ignore block comment */ }
-
-.               { /* unknown char => return it (parser will error) */ return yytext[0]; }
+.               { /* unknown char => return it (parser will likely error) */ return yytext[0]; }
 
 %%
 
 int yywrap(void) { return 1; }
-EOF

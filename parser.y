@@ -1,3 +1,4 @@
+cat > parser.y <<'EOF'
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,4 +125,7 @@ factor:
 
 %%
 
-void yyerror(const char *s) {*
+void yyerror(const char *s) {
+    fprintf(stderr, "Erro sintático: %s (linha %d)\n", s, yylineno);
+}
+EOF
