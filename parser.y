@@ -6,7 +6,6 @@
 extern int yylex(void);
 extern int yylineno;
 void yyerror(const char *s);
-
 %}
 
 %union {
@@ -21,11 +20,12 @@ void yyerror(const char *s);
 %token EQ NEQ GTE LTE GT LT
 %token ASSIGN
 
+/* Declare types for nonterminals that use values */
+%type <num> expression term factor
+%type <str> args
+
 %left '+' '-'
 %left '*' '/' '%'
-
-%type <num> expression term factor
-%type <str> identifier
 
 %%
 
@@ -55,14 +55,16 @@ function_call:
         free($1);
     }
     | IDENT '(' args ')' ';' {
-        free($1);
+        /* $3 is args (a string with argcount) or NULL */
         if ($3) free($3);
+        free($1);
     }
     ;
 
 args:
       expression {
-          $$ = strdup("1"); /* pass argcount string for structure only */
+          /* single arg -> return "1" as argcount string (only structural) */
+          $$ = strdup("1");
       }
     | args ',' expression {
           int prev = atoi($1);
@@ -122,6 +124,4 @@ factor:
 
 %%
 
-void yyerror(const char *s) {
-    fprintf(stderr, "Erro sintático: %s (linha %d)\n", s, yylineno);
-}
+void yyerror(const char *s) {*
