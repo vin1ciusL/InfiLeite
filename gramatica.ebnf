@@ -1,19 +1,24 @@
+(* InfiLeite - EBNF (versão estendida com comandos do jogo) *)
+
 program        = { statement } ;
 
-statement      = assignment | function_call | while_statement | if_statement | ";" ;
+statement      = assignment
+               | function_call
+               | print_statement
+               | while_statement
+               | if_statement
+               | ";" ;
 
 assignment     = identifier "=" expression ";" ;
 
-function_call  = identifier "(" [ arguments ] ")" ";" ;
+function_call  = identifier "(" [ expression ] ")" ";" ;
 
-arguments      = expression { "," expression } ;
+print_statement = "print" "(" expression ")" ";" ;
 
-while_statement = "enquanto" "(" condition ")" "{" { statement } "}" ;
+while_statement = "enquanto" "(" expression ")" "{" { statement } "}" ;
 
-if_statement   = "se" "(" condition ")" "{" { statement } "}"
+if_statement   = "se" "(" expression ")" "{" { statement } "}"
                [ "senao" "{" { statement } "}" ] ;
-
-condition      = expression comparator expression ;
 
 expression     = term { ("+" | "-" ) term } ;
 
@@ -21,9 +26,9 @@ term           = factor { ("*" | "/" | "%" ) factor } ;
 
 factor         = number
                | identifier
-               | "(" expression ")" ;
-
-comparator     = ">" | "<" | "==" | "!=" | ">=" | "<=" ;
+               | identifier "(" expression [ "," expression ] ")"
+               | "(" expression ")"
+               ;
 
 identifier     = letter { letter | digit | "_" } ;
 number         = digit { digit } ;

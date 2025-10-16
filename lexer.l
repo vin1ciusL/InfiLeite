@@ -14,23 +14,40 @@ NUM     {DIGIT}+
 "enquanto"      { return WHILE; }
 "se"            { return IF; }
 "senao"         { return ELSE; }
+"print"         { return PRINT; }
 
 {ID}            { yylval.str = strdup(yytext); return IDENT; }
 {NUM}           { yylval.num = atol(yytext); return NUMBER; }
 
-"==" { return EQ; } "!=" { return NEQ; } ">=" { return GTE; } "<=" { return LTE; }
-">"  { return GT; } "<"  { return LT; }
+"=="            { return EQ; }
+"!="            { return NEQ; }
+">="            { return GTE; }
+"<="            { return LTE; }
 
-"="  { return ASSIGN; }
-";"  { return ';'; } "," { return ','; }
-"("  { return '('; } ")" { return ')'; }
-"{"  { return '{'; } "}" { return '}'; }
+">"             { return GT; }
+"<"             { return LT; }
 
-"+" { return '+'; } "-" { return '-'; }
-"*" { return '*'; } "/" { return '/'; } "%" { return '%'; }
+"="             { return ASSIGN; }
 
-[ \t\r\n]+  ;
-.           { return yytext[0]; }
+";"             { return ';'; }
+","             { return ','; }
+
+"("             { return '('; }
+")"             { return ')'; }
+
+"{"             { return '{'; }
+"}"             { return '}'; }
+
+"+"             { return '+'; }
+"-"             { return '-' ;}
+
+"*"             { return '*'; }
+"/"             { return '/'; }
+"%"             { return '%'; }
+
+[ \t\r\n]+      ;
+
+.               { return yytext[0]; }
 
 %%
 
