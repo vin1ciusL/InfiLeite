@@ -119,3 +119,60 @@ void exec_stmt_list(Stmt *root) {
     if (root->kind == ST_BLOCK) exec_block(root);
     else exec_stmt(root);
 }
+
+void free_expr(Expr *e) {
+    if (!e) return;
+    switch (e->kind) {
+        case EXPR_NUM:
+            /* nada extra a liberar */
+            break;
+        case EXPR_VAR:
+            free(e->u.name);
+            break;
+        case EXPR_BINOP:
+            free_expr(e->u.binop.left);
+            free_expr(e->u.binop.right);
+            break;
+        case EXPR_CALL:
+            if (e->u.call.name) free(e->u.call.name);
+            if (e->u.call.args) {
+                for (int i = 0; i < e->u.call.nargs; ++i) free_expr(e->u.call.args[i]);
+                free(e->u.call.args);
+            }
+            break;
+    }
+    free(e);
+}
+
+void free_stmt(Stmt *s) {
+    if (!s) return;
+    switch (s->kind) {
+        case ST_ASSIGN:
+            if (s->u.assign.name) free(s->u.assign.name);
+            free_expr(s->u.assign.value);
+            break;
+        case ST_EXPR:
+            free_expr(s->u.expr.expr);
+            break;
+        case ST_IF:
+            free_expr(s->u.ifs.cond);
+            free_stmt(s->u.ifs.then_branch);
+            if (s->u.ifs.else_branch) free_stmt(s->u.ifs.else_branch);
+            break;
+        case ST_WHILE:
+            free_expr(s->u.wh.cond);
+            free_stmt(s->u.wh.body);
+            break;
+        case ST_BLOCK:
+            if (s->u.block.stmts) {
+                for (int i = 0; i < s->u.block.n; ++i) {
+                    free_stmt(s->u.block.stmts[i]);
+                }
+                free(s->u.block.stmts);
+            }
+            break;
+        default:
+            break;
+    }
+    free(s);
+}
