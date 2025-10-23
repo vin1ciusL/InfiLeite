@@ -1,27 +1,13 @@
-leite = 5;
-dinheiro = 500;
-vacas = 10;
+dinheiro = 0;
+leite = 0;
 
-maquina(1);
-tomar_leite();
-maquina(4);
-comprar_vaca();
-ordenhar();
-leite = leite + aleatorio(1, vacas);
+enquanto (dinheiro < 200) {
+    ordenhar();
+    vender(10);
 
-se (leite >= 10) {
-  vender(10);
+    se (dinheiro > 50) {
+        comprar_vaca();
+    }
 }
 
-acasalar();
-maquina(7);
-ordenhar();
-ordenhar();
-vender(5);
-cassino();
-comprar_fazenda();
 resultado();
-tomar_leite();
-print(leite);
-print(dinheiro);
-print(vacas);

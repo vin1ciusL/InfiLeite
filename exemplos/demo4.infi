@@ -1,0 +1,19 @@
+# Estratégia automática com elementos aleatórios
+
+dinheiro = 0;
+leite = 0;
+
+enquanto (dinheiro < 1000) {
+    ordenhar();
+    vender(aleatorio(5, 20));
+
+    se (aleatorio(1, 10) > 7) {
+        cassino();
+    } senao {
+        se (dinheiro > 100) {
+            comprar_vaca();
+        }
+    }
+}
+
+resultado();
