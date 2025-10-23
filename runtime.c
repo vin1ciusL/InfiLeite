@@ -90,22 +90,6 @@ static int vehicle_discount_percent = 0;
 static int pasture_bonus_percent = 0;
 static long op_count = 0;
 
-#define MAX_VARS 256
-static char *var_name[MAX_VARS];
-static long var_value[MAX_VARS];
-static int var_count = 0;
-long get_var(const char *name) {
-    for (int i=0;i<var_count;i++) if (strcmp(var_name[i], name)==0) return var_value[i];
-    return 0;
-}
-void set_var(const char *name, long v) {
-    for (int i=0;i<var_count;i++) if (strcmp(var_name[i], name)==0) { var_value[i]=v; return; }
-    if (var_count < MAX_VARS) {
-        var_name[var_count] = strdup(name);
-        var_value[var_count] = v;
-        var_count++;
-    }
-}
 
 long aleatorio_run(long a, long b) {
     if (b < a) { long t=a; a=b; b=t; }
