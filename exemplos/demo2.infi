@@ -1,10 +1,8 @@
-# Programa que investe na fazenda conforme o progresso
-
-dinheiro = 0;
+ = 0;
 leite = 0;
 
-maquina(1);     # melhora o copo de leite
-maquina(4);     # pequeno desconto na compra de vacas
+maquina(1);
+maquina(4);
 
 enquanto (vacas < 10) {
     ordenhar();

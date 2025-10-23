@@ -17,6 +17,8 @@ int main(int argc, char **argv) {
     yyin = fopen(argv[1], "r");
     if (!yyin) { perror("fopen"); return 1; }
     srand((unsigned)time(NULL));
+    extern int yydebug;
+    yydebug = 1;
     int res = yyparse();
     fclose(yyin);
     if (res == 0) {
