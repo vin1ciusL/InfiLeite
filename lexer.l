@@ -1,8 +1,10 @@
 %{
-#include "parser.tab.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-void yyerror(const char *s);
+#include "parser.tab.h"
+#include "ast.h"
+extern int yylineno;
 %}
 
 DIGIT   [0-9]
