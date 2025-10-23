@@ -132,8 +132,10 @@ Stmt **append_stmt_array(Stmt **arr, int *n, Stmt *s) {
 %token <num> NUMBER
 %token WHILE IF ELSE PRINT THEN
 %token EQ NEQ GTE LTE GT LT ASSIGN
+
+/* declare types for non-terminals used with $n / $$ */
 %type <expr> expression term factor
-%type <stmt> statement
+%type <stmt> statement assignment function_call print_statement while_statement if_statement
 %type <stmtarr> program_block
 %type <elist> func_args
 
@@ -206,17 +208,17 @@ function_call:
 
 print_statement:
     PRINT '(' expression ')' ';' {
-        /* translate print(x); to a call to runtime print: we'll just evaluate and print here */
-        long v = eval: ; /* placeholder — we cannot eval here; instead we create an expr-stmt call to a "print" function */
-        Expr **pa = malloc(sizeof(Expr*)); pa[0]=$3;
-        Expr *call = new_call("print_internal", pa, 1);
+        /* cria uma chamada print(expr) como statement */
+        Expr **pa = malloc(sizeof(Expr*));
+        pa[0] = $3;
+        Expr *call = new_call("print", pa, 1);
         $$ = new_expr_stmt(call);
     }
     ;
 
 while_statement:
     WHILE '(' expression ')' '{' program_block '}' {
-        Stmt *body = new_block($5.arr, $5.n);
+        Stmt *body = new_block($6.arr, $6.n);
         $$ = new_while($3, body);
     }
     ;
