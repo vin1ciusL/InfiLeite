@@ -13,6 +13,7 @@ NUM     {DIGIT}+
 
 "enquanto"      { return WHILE; }
 "se"            { return IF; }
+"entao"         { return THEN; }
 "senao"         { return ELSE; }
 "print"         { return PRINT; }
 

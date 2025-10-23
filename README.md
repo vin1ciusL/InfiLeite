@@ -1,52 +1,126 @@
-# InfiLeite
+# InfiLeite 
 
-InfiLeite é uma **DSL (domain-specific language)** projetada para scripts de jogos do tipo *idle*.  
-A linguagem permite escrever rotinas que automatizam a produção, venda e compra de ativos (leite e vacas).
+InfiLeite🐄 é uma DSL (domain-specific language) voltada para simular e automatizar rotinas de uma fazenda 🐄leiteira🐄 em um estilo idle game.  
+Ela permite escrever programas em português que controlam produção, compra, venda e eventos aleatórios de forma automatizada.
 
-## Propósito
-- Fornecer uma linguagem simples e legível para descrever estratégias automáticas em jogos clicker/idle.
-- Permitir experimentação com lógica de automação (loops, condicionais, funções de domínio e aleatoriedade).
+🐄 - Propósito - 🐄
 
-## Principais características da linguagem
-- Sintaxe em português (palavras-chave): `enquanto`, `se`, `senao`.
+- Criar uma linguagem simples e legível para descrever estratégias automáticas em jogos tipo clicker/idle.
+- Servir como exemplo educacional de construção de uma linguagem com Flex, Bison, C e uma VM própria.
+- Demonstrar o pipeline completo: análise léxica, análise sintática, geração de código assembly e execução em máquina virtual.
+🐄🐄🐄
+Características principais da linguagem
+
+- Sintaxe em português (`enquanto`, `se`, `senao`).
 - Tipos básicos: números inteiros (long).
 - Operadores aritméticos: `+`, `-`, `*`, `/`, `%`.
-- Variáveis por atribuição: `x = 10;`
-- Condicionais: `se (cond) { ... } [senao { ... }]`
-- Loops: `enquanto (cond) { ... }`
-- Funções nativas do domínio (implementadas no interpretador):
 
-  - `ordenhar();` — gera leite (quantidade aleatória dependente do número de vacas).  
-  - `vender(qtd);` — converte leite em dinheiro (taxa fixa).  
-  - `comprar_vaca();` — gasta dinheiro para aumentar produção.  
-  - `comprar_fazenda();` — requer 30 vacas e 100 de dinheiro, aumenta a produção das vacas em 50%.  
-  - `aleatorio(a,b)` — retorna um inteiro aleatório entre `a` e `b`.  
-  - `print(expr);` — imprime o valor da expressão.  
-  - `tomar_leite();` — consome 1 unidade de leite e exibe uma mensagem de acordo com a qualidade do copo.  
-  - `acasalar();` — usa 2 vacas para criar 1 nova vaca com 80% menos produção.  
-  - `cassino();` — gasta 1000 dinheiros e tem 49% de chance de retornar 1250.  
-  - `maquina(x);` — configura bônus e itens do jogo, com 9 opções:  
-    1. copo ruim — muda a mensagem de `tomar_leite()` para “é nutritivo!”  
-    2. copo bom — “é nutritivo!!”  
-    3. copo ótimo — “é bem nutritivo!!”  
-    4. veículo pequeno — reduz o preço das vacas em 5%  
-    5. veículo médio — reduz em 10%  
-    6. veículo grande — reduz em 20%  
-    7. pastagens melhores — 10% de chance de cada vaca gerar +1 leite  
-    8. pastagens incríveis — 20%  
-    9. paraíso vacal — 30%  
-  - `resultado();` — mostra quantas operações foram realizadas, o total de dinheiro, vacas, leite e vacas geradas.
+Estruturas fundamentais:
 
-## Estrutura interna
-- Gramática definida em `gramatica.ebnf`.  
-- Lexer: `lexer.l` (Flex).  
-- Parser: `parser.y` (Bison).  
-- Interpretação: ações de jogo executadas durante a análise (execução direta).
+Atribuição (🐄!):
+```
+x = 10;
+```
 
-## Compilar e rodar
+Condicional (🐄?):
+```
+se (x > 5) {
+  vender(2);
+} senao {
+  comprar_vaca();
+}
+```
+
+Loop (1🐄2🐄3🐄4🐄5🐄6🐄7🐄8🐄 ... N🐄):
+```
+enquanto (leite < 100) {
+  ordenhar();
+}
+```
+
+🐄 Funções nativas do domínio 🐄
+
+- `ordenhar();` — Gera leite proporcional ao número de vacas.  
+- `vender(qtd);` — Vende leite e converte em dinheiro.  
+- `comprar_vaca();` — Compra vaca se houver dinheiro suficiente.  
+- `comprar_fazenda();` — Requer 30 vacas e 100 de dinheiro; aumenta produção em 50%.  
+- `aleatorio(a,b)` — Retorna número inteiro aleatório no intervalo.  
+- `tomar_leite();` — Consome leite e exibe mensagem com base na qualidade.  
+- `acasalar();` — Usa 2 vacas e cria 1 nova vaca.  (🐄 ❤️ 🐄)
+- `cassino();` — Gasta 1000 dinheiros e pode retornar 1250 com 49% de chance.  
+- `maquina(x);` — Ativa bônus (1–9) como copos, veículos e pastagens melhores.  
+- `resultado();` — Exibe o estado atual (dinheiro, vacas, leite e operações).  
+- `comprar_ate(n);` — Compra vacas até atingir n.  
+- `tomar_tudo();` — Bebe todo o leite disponível.  
+- `criar_vicio();` — Realiza várias apostas no cassino seguidas.
+
+Estrutura interna do projeto 🐄🐄🐄🐄🐄🐄
+
+- `gramatica.ebnf` — Definição da gramática formal da linguagem (EBNF).  
+- `lexer.l` — Analisador léxico (Flex).  
+- `parser.y` — Analisador sintático (Bison).  
+- `ast.h` — Estruturas de dados da árvore sintática abstrata (AST).  
+- `codegen.c` — Gera assembly textual para a VM (PUSH, ADD, JZ, etc).  
+- `vm_interpreter.c` — Implementa a máquina virtual InfiVM — com pilha, variáveis e saltos.  
+- `runtime.c` — Implementa as funções nativas e o "mundo das vacas".  
+- `exec.c` — Executor direto do AST (modo interpretado).  
+- `main.c` — Programa principal: integra parser, execução e limpeza de memória.  
+- `Makefile` — Scripts de build automatizados.
+
+🐄 Pipeline 🐄 de 🐄 compilação 🐄
+
+.código fonte (.infi)  
+    │  
+    ▼  
+[Flex] → Tokens  
+    │  
+    ▼  
+[Bison] → Árvore Sintática (AST)  
+    │  
+    ├── Execução direta (interpretação)  
+    └── Geração de código assembly → InfiVM  
+        │  
+        ▼  
+       Execução final
+
+Compilar e 🐄rodar🐄
+
 Pré-requisitos: `flex`, `bison`, `gcc`, `make`.
 
 ```bash
 make clean
 make
 ./parser exemplos/demo.infi
+```
+
+Para testar o assembly gerado e a VM manualmente: (🐄🐄🐄)
+```bash
+./parser exemplos/demo.infi > out.asm
+./vm out.asm
+```
+
+🐄🐄🐄
+
+Exemplo de programa
+```c
+dinheiro = 0;
+leite = 0;
+
+enquanto (dinheiro < 1000) {
+  ordenhar();
+  vender(10);
+  se (dinheiro > 50) {
+    comprar_vaca();
+  }
+}
+
+resultado();
+```
+🐄🐄🐄🐄
+Créditos
+
+Desenvolvido como parte da Atividade Prática Supervisionada (APS)  
+Disciplina: Linguagens Formais e Compiladores  
+Ferramentas: Flex, Bison, C, Make, VM própria (InfiVM)
+
+🐄🐄🐄🐄

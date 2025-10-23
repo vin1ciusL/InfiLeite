@@ -3,246 +3,281 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "ast.h"
+
 extern int yylex(void);
 extern FILE *yyin;
 extern int yylineno;
 void yyerror(const char *s);
-#define MAX_VARS 256
-static char *var_name[MAX_VARS];
-static long var_value[MAX_VARS];
-static int var_count = 0;
-long get_var(const char *name) {
-    for (int i=0;i<var_count;i++) if (strcmp(var_name[i], name)==0) return var_value[i];
-    return 0;
+
+/* helper: root_program constructed by parser */
+Stmt *root_program = NULL;
+
+/* ExprList helper type for passing arg lists in bison actions */
+typedef struct { Expr **arr; int n; } ExprList;
+
+ExprList *elist_new(void) {
+    ExprList *l = malloc(sizeof(*l));
+    l->arr = NULL;
+    l->n = 0;
+    return l;
 }
-void set_var(const char *name, long v) {
-    for (int i=0;i<var_count;i++) if (strcmp(var_name[i], name)==0) { var_value[i]=v; return; }
-    if (var_count < MAX_VARS) {
-        var_name[var_count] = strdup(name);
-        var_value[var_count] = v;
-        var_count++;
-    }
+void elist_push(ExprList *l, Expr *e) {
+    l->arr = realloc(l->arr, sizeof(Expr*) * (l->n + 1));
+    l->arr[l->n++] = e;
 }
-static long leite = 0;
-static long dinheiro = 0;
-static long vacas = 1;
-static long bred_cows = 0;
-static double cow_price = 50.0;
-static int cup_quality = 0;
-static int vehicle_discount_percent = 0;
-static int pasture_bonus_percent = 0;
-static long op_count = 0;
-void ordenhar_run() {
-    op_count++;
-    double effective = (double)(vacas - bred_cows) + (double)bred_cows * 0.2;
-    effective += ((double)pasture_bonus_percent / 100.0) * (double)vacas;
-    int maxprod = (int)(effective + 0.999);
-    if (maxprod < 1) maxprod = 1;
-    long ganho = (rand() % maxprod) + 1;
-    leite += ganho;
-    printf("ordenhar -> +%ld leite (total %ld)\n", ganho, leite);
-}
-void vender_run(long qtd) {
-    op_count++;
-    if (qtd > leite) qtd = leite;
-    leite -= qtd;
-    long ganho = qtd * 5;
-    dinheiro += ganho;
-    printf("vender(%ld) -> +$%ld (dinheiro %ld, leite %ld)\n", qtd, ganho, dinheiro, leite);
-}
-void comprar_vaca_run() {
-    op_count++;
-    double price = cow_price * (1.0 - ((double)vehicle_discount_percent / 100.0));
-    long p = (long)(price + 0.999);
-    if (dinheiro >= p) {
-        dinheiro -= p;
-        vacas += 1;
-        printf("comprar_vaca -> vacas=%ld, dinheiro=%ld (preco %ld)\n", vacas, dinheiro, p);
-    } else {
-        printf("comprar_vaca falhou (dinheiro=%ld, preco %ld)\n", dinheiro, p);
-    }
-}
-void comprar_fazenda_run() {
-    op_count++;
-    if (vacas >= 30 && dinheiro >= 100) {
-        dinheiro -= 100;
-        long aumento = (vacas * 50) / 100;
-        vacas += aumento;
-        printf("comprar_fazenda -> vacas=%ld (aumento +%ld), dinheiro=%ld\n", vacas, aumento, dinheiro);
-    } else {
-        printf("comprar_fazenda falhou (requer 30 vacas e 100 de dinheiro)\n");
-    }
-}
-void tomar_leite_run() {
-    if (leite >= 1) {
-        leite -= 1;
-        if (cup_quality == 0) printf("e nutritivo\n");
-        else if (cup_quality == 1) printf("e nutritivo!\n");
-        else if (cup_quality == 2) printf("e nutritivo!!\n");
-        else if (cup_quality == 3) printf("e bem nutritivo!!\n");
-    } else {
-        printf("nao ha leite para tomar\n");
-    }
-}
-void acasalar_run() {
-    op_count++;
-    if (vacas >= 2) {
-        vacas -= 2;
-        vacas += 3;
-        bred_cows += 1;
-        printf("acasalar -> nova vaca nascida (bred_cows=%ld), vacas=%ld\n", bred_cows, vacas);
-    } else {
-        printf("acasalar falhou (precisa de 2 vacas)\n");
-    }
-}
-void cassino_run() {
-    op_count++;
-    if (dinheiro >= 1000) {
-        dinheiro -= 1000;
-        int r = rand() % 100;
-        if (r < 49) {
-            dinheiro += 1250;
-            printf("cassino -> venceu! +1250 (dinheiro=%ld)\n", dinheiro);
-        } else {
-            printf("cassino -> perdeu (dinheiro=%ld)\n", dinheiro);
-        }
-    } else {
-        printf("cassino falhou (precisa de 1000)\n");
-    }
-}
-void maquina_run(long opt) {
-    if (opt < 1 || opt > 9) {
-        printf("maquina: opcao invalida\n");
-        return;
-    }
-    if (opt >= 4) op_count++;
-    if (opt == 1) cup_quality = 1;
-    else if (opt == 2) cup_quality = 2;
-    else if (opt == 3) cup_quality = 3;
-    else if (opt == 4) vehicle_discount_percent = 5;
-    else if (opt == 5) vehicle_discount_percent = 10;
-    else if (opt == 6) vehicle_discount_percent = 20;
-    else if (opt == 7) pasture_bonus_percent = 10;
-    else if (opt == 8) pasture_bonus_percent = 20;
-    else if (opt == 9) pasture_bonus_percent = 30;
-    printf("maquina(%ld) -> cup_quality=%d vehicle_discount=%d pasture_bonus=%d\n", opt, cup_quality, vehicle_discount_percent, pasture_bonus_percent);
+Expr **elist_to_array(ExprList *l) {
+    if (!l) return NULL;
+    return l->arr;
 }
 
-void resultado_run() {
-    op_count++;
-    printf("RESULTADO -> operacoes=%ld dinheiro=%ld vacas=%ld leite=%ld bred_cows=%ld\n", op_count, dinheiro, vacas, leite, bred_cows);
+/* node constructors (simple implementations) */
+Expr *new_num(long v);
+Expr *new_var(char *name);
+Expr *new_binop(char op, Expr *l, Expr *r);
+Expr *new_call(char *name, Expr **args, int nargs);
+
+Stmt *new_assign(char *name, Expr *val);
+Stmt *new_expr_stmt(Expr *e);
+Stmt *new_if(Expr *cond, Stmt *thenb, Stmt *elseb);
+Stmt *new_while(Expr *cond, Stmt *body);
+Stmt *new_block(Stmt **stmts, int n);
+
+/* implementations (quick and small) */
+Expr *new_num(long v) {
+    Expr *e = calloc(1,sizeof(Expr));
+    e->kind = EXPR_NUM;
+    e->u.num = v;
+    return e;
 }
-long aleatorio_run(long a, long b) {
-    if (b < a) { long t=a; a=b; b=t; }
-    if (a==b) return a;
-    long r = (rand() % (b - a + 1)) + a;
-    return r;
+Expr *new_var(char *name) {
+    Expr *e = calloc(1,sizeof(Expr));
+    e->kind = EXPR_VAR;
+    e->u.name = strdup(name);
+    return e;
 }
+Expr *new_binop(char op, Expr *l, Expr *r) {
+    Expr *e = calloc(1,sizeof(Expr));
+    e->kind = EXPR_BINOP;
+    e->u.binop.op = op;
+    e->u.binop.left = l;
+    e->u.binop.right = r;
+    return e;
+}
+Expr *new_call(char *name, Expr **args, int nargs) {
+    Expr *e = calloc(1,sizeof(Expr));
+    e->kind = EXPR_CALL;
+    e->u.call.name = strdup(name);
+    e->u.call.args = args;
+    e->u.call.nargs = nargs;
+    return e;
+}
+
+Stmt *new_assign(char *name, Expr *val) {
+    Stmt *s = calloc(1,sizeof(Stmt));
+    s->kind = ST_ASSIGN;
+    s->u.assign.name = strdup(name);
+    s->u.assign.value = val;
+    return s;
+}
+Stmt *new_expr_stmt(Expr *e) {
+    Stmt *s = calloc(1,sizeof(Stmt));
+    s->kind = ST_EXPR;
+    s->u.expr.expr = e;
+    return s;
+}
+Stmt *new_if(Expr *cond, Stmt *thenb, Stmt *elseb) {
+    Stmt *s = calloc(1,sizeof(Stmt));
+    s->kind = ST_IF;
+    s->u.ifs.cond = cond;
+    s->u.ifs.then_branch = thenb;
+    s->u.ifs.else_branch = elseb;
+    return s;
+}
+Stmt *new_while(Expr *cond, Stmt *body) {
+    Stmt *s = calloc(1,sizeof(Stmt));
+    s->kind = ST_WHILE;
+    s->u.wh.cond = cond;
+    s->u.wh.body = body;
+    return s;
+}
+Stmt *new_block(Stmt **stmts, int n) {
+    Stmt *s = calloc(1,sizeof(Stmt));
+    s->kind = ST_BLOCK;
+    s->u.block.stmts = stmts;
+    s->u.block.n = n;
+    return s;
+}
+
+/* helper to append a statement into a block (realloc array) */
+Stmt **append_stmt_array(Stmt **arr, int *n, Stmt *s) {
+    arr = realloc(arr, sizeof(Stmt*) * (*n + 1));
+    arr[*n] = s;
+    (*n)++;
+    return arr;
+}
+
 %}
+
 %union {
     long num;
     char *str;
+    Expr *expr;
+    Stmt *stmt;
+    ExprList *elist;
+    struct { Stmt **arr; int n; } stmtarr;
 }
+
 %token <str> IDENT
 %token <num> NUMBER
-%token WHILE IF ELSE PRINT
+%token WHILE IF ELSE PRINT THEN
 %token EQ NEQ GTE LTE GT LT ASSIGN
-%type <num> expression term factor func_args
+%type <expr> expression term factor
+%type <stmt> statement
+%type <stmtarr> program_block
+%type <elist> func_args
+
 %left '+' '-'
 %left '*' '/' '%'
+
 %%
 
 program:
-    | program statement
+    program_block { root_program = new_block($1.arr, $1.n); }
     ;
+
+program_block:
+      /* empty */ { $$.arr = NULL; $$.n = 0; }
+    | program_block statement {
+        $$.arr = $1.arr; $$.n = $1.n;
+        $$.arr = append_stmt_array($$.arr, &$$.n, $2);
+    }
+    ;
+
 statement:
-      assignment
-    | function_call
-    | print_statement
-    | while_statement
-    | if_statement
-    | ';'
+      assignment                { $$ = $1; }
+    | function_call             { $$ = $1; }
+    | print_statement           { $$ = $1; }
+    | while_statement           { $$ = $1; }
+    | if_statement              { $$ = $1; }
+    | IF '(' expression ')' THEN IDENT '(' ')' ';' {
+            /* short form: if (expr) ident() ; */
+            Expr *cond = $3;
+            Expr *call = new_call($6, NULL, 0);
+            Stmt *callst = new_expr_stmt(call);
+            $$ = new_if(cond, callst, NULL);
+            free($6);
+        }
+    | IF '(' expression ')' THEN IDENT '(' expression ')' ';' {
+            Expr *cond = $3;
+            Expr *arg = $8;
+            Expr **args = malloc(sizeof(Expr*));
+            args[0] = arg;
+            Expr *call = new_call($6, args, 1);
+            Stmt *callst = new_expr_stmt(call);
+            $$ = new_if(cond, callst, NULL);
+            free($6);
+        }
+    | ';'                      { $$ = NULL; }
     ;
+
 assignment:
     IDENT ASSIGN expression ';' {
-        set_var($1, $3);
+        $$ = new_assign($1, $3);
         free($1);
     }
     ;
+
 function_call:
     IDENT '(' ')' ';' {
-        if (strcmp($1, "ordenhar")==0) ordenhar_run();
-        else if (strcmp($1, "comprar_vaca")==0) comprar_vaca_run();
-        else if (strcmp($1, "comprar_fazenda")==0) comprar_fazenda_run();
-        else if (strcmp($1, "tomar_leite")==0) tomar_leite_run();
-        else if (strcmp($1, "acasalar")==0) acasalar_run();
-        else if (strcmp($1, "cassino")==0) cassino_run();
-        else if (strcmp($1, "resultado")==0) resultado_run();
-        else printf("funcao %s() chamada sem implementacao\n", $1);
+        Expr *call = new_call($1, NULL, 0);
+        $$ = new_expr_stmt(call);
         free($1);
     }
-  | IDENT '(' expression ')' ';' {
-        if (strcmp($1, "vender")==0) vender_run($3);
-        else if (strcmp($1, "maquina")==0) maquina_run($3);
-        else printf("funcao %s(arg) chamada sem implementacao\n", $1);
+  | IDENT '(' func_args ')' ';' {
+        int nargs = $3 ? $3->n : 0;
+        Expr **args = nargs ? $3->arr : NULL;
+        Expr *call = new_call($1, args, nargs);
+        $$ = new_expr_stmt(call);
         free($1);
+        if ($3) free($3);
     }
     ;
+
 print_statement:
     PRINT '(' expression ')' ';' {
-        printf("%ld\n", $3);
+        /* translate print(x); to a call to runtime print: we'll just evaluate and print here */
+        long v = eval: ; /* placeholder — we cannot eval here; instead we create an expr-stmt call to a "print" function */
+        Expr **pa = malloc(sizeof(Expr*)); pa[0]=$3;
+        Expr *call = new_call("print_internal", pa, 1);
+        $$ = new_expr_stmt(call);
     }
     ;
+
 while_statement:
-    WHILE '(' expression ')' '{' program '}' {
+    WHILE '(' expression ')' '{' program_block '}' {
+        Stmt *body = new_block($5.arr, $5.n);
+        $$ = new_while($3, body);
     }
     ;
+
 if_statement:
-    IF '(' expression ')' '{' program '}' {
+    IF '(' expression ')' '{' program_block '}' {
+        Stmt *thenb = new_block($6.arr, $6.n);
+        $$ = new_if($3, thenb, NULL);
     }
-  | IF '(' expression ')' '{' program '}' ELSE '{' program '}' {
+  | IF '(' expression ')' '{' program_block '}' ELSE '{' program_block '}' {
+        Stmt *thenb = new_block($6.arr, $6.n);
+        Stmt *elseb = new_block($10.arr, $10.n);
+        $$ = new_if($3, thenb, elseb);
     }
   ;
-condition:
-    expression comparator expression ;
-comparator:
-      EQ | NEQ | GT | LT | GTE | LTE
+
+func_args:
+      /* single */ expression {
+          ExprList *l = elist_new();
+          elist_push(l, $1);
+          $$ = l;
+      }
+    | expression ',' expression {
+          ExprList *l = elist_new();
+          elist_push(l, $1);
+          elist_push(l, $3);
+          $$ = l;
+      }
     ;
+
 expression:
       term { $$ = $1; }
-    | expression '+' term { $$ = $1 + $3; }
-    | expression '-' term { $$ = $1 - $3; }
+    | expression '+' term { $$ = new_binop('+', $1, $3); }
+    | expression '-' term { $$ = new_binop('-', $1, $3); }
     ;
+
 term:
       factor { $$ = $1; }
-    | term '*' factor { $$ = $1 * $3; }
-    | term '/' factor { if ($3==0) $$ = 0; else $$ = $1 / $3; }
-    | term '%' factor { if ($3==0) $$ = 0; else $$ = $1 % $3; }
+    | term '*' factor { $$ = new_binop('*', $1, $3); }
+    | term '/' factor { $$ = new_binop('/', $1, $3); }
+    | term '%' factor { $$ = new_binop('%', $1, $3); }
     ;
+
 factor:
-      NUMBER { $$ = $1; }
+      NUMBER { $$ = new_num($1); }
     | IDENT {
-        $$ = get_var($1);
+        $$ = new_var($1);
         free($1);
     }
     | IDENT '(' func_args ')' {
-        long packed = $3;
-        long a = (int)(packed & 0xffffffff);
-        long b = (int)((packed >> 32) & 0xffffffff);
-        if (strcmp($1, "aleatorio")==0) {
-            $$ = aleatorio_run(a, b);
-        } else {
-            $$ = 0;
-        }
+        int nargs = $3 ? $3->n : 0;
+        Expr **args = nargs ? $3->arr : NULL;
+        $$ = new_call($1, args, nargs);
         free($1);
+        if ($3) free($3);
     }
     | '(' expression ')' { $$ = $2; }
     ;
-func_args:
-      expression { long pack = (long)( (unsigned long)$1 & 0xffffffffu ); $$ = pack; }
-    | expression ',' expression { long a = (long)$1; long b = (long)$3; long pack = ( ( (long)( (unsigned long)b & 0xffffffffu) ) << 32 ) | ( (unsigned long)a & 0xffffffffu ); $$ = pack; }
-    ;
 %%
+
+/* minimal error handler */
 void yyerror(const char *s) {
     fprintf(stderr, "Erro sintático: %s (linha %d)\n", s, yylineno);
 }
