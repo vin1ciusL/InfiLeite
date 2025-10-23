@@ -13,9 +13,6 @@ void yyerror(const char *s);
 /* helper: root_program constructed by parser */
 Stmt *root_program = NULL;
 
-/* ExprList helper type for passing arg lists in bison actions */
-typedef struct { Expr **arr; int n; } ExprList;
-
 ExprList *elist_new(void) {
     ExprList *l = malloc(sizeof(*l));
     l->arr = NULL;

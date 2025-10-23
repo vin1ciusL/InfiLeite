@@ -51,4 +51,9 @@ void free_stmt(Stmt *s);
 /* root program filled by parser.y */
 extern Stmt *root_program;
 
+typedef struct ExprList {
+    struct Expr **arr;
+    int n;
+} ExprList;
+
 #endif
